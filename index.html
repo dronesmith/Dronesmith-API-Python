@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Drone Position</title>
+
+    <style>
+    body {
+      margin 0;
+    }
+
+    .ga-map {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      left: 0;
+      top: 0;
+      border-radius: 0px;
+    }
+    </style>
+  </head>
+  <body>
+    <main id="map" class="ga-map"></main>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAobHL5RFTMz12EEyQlMPTnZ178dSj7xA8&v=3.exp&libraries=visualization&callback=onGoogleReady" async defer></script>
+
+    <script>
+     // All code goes in here. Called when Google Maps API is initialized.
+     function onGoogleReady() {
+
+       // Init map
+       var map = new google.maps.Map($('#map')[0], {
+         // vegas
+         center: new google.maps.LatLng(36.1215, -115.1739),
+         zoom: 18,
+         mapTypeId: google.maps.MapTypeId.SATELLITE
+       });
+
+       // init heatmap
+       heatmap = new google.maps.visualization.HeatmapLayer({
+          map: map
+       });
+
+        // Flight path poly line
+       var flightPath = new google.maps.Polyline({
+         strokeColor: '#FF0000',
+         strokeOpacity: 1.0,
+         strokeWeight: 3,
+         map: map
+       });
+
+       // Marker at current location
+       var marker = new google.maps.Marker({
+         title: '#0',
+         map: map
+       });
+
+       setInterval(function() {
+         $.get('http://localhost:8080/gps',function(data) {
+           // Assume object returned is: {lat: <num>, lon: <num>} format
+           var latlng = new google.maps.LatLng(data.lat, data.lon);
+
+           // update heat map
+          //  var points = heatmap.get('data');
+          //  points.push({location: latlng, weight: data.intensity * 10});
+
+           // Center on coordinate
+           map.panTo(latlng);
+
+           // Update polyfill path
+           var path = flightPath.getPath();
+           path.push(latlng);
+
+           // Update marker
+           marker.setPosition(latlng);
+         });
+       }, 1000); // update once a second
+
+     }
+    </script>
+  </body>
+</html>
